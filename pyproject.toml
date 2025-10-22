@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.20.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "envguard"
+version = "0.1.0"
+description = "Cross-check environment variables used in Python code against .env and docker-compose."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [{ name = "Dipendra Pant", email = "dipendrapant778@gmail.com" }]
+keywords = ["env", "dotenv", "linter", "devops", "ci"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Utilities"
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+compose = ["PyYAML>=6.0.1"]
+
+[project.scripts]
+envguard = "envguard.cli:main"
+
+[tool.hatch.build]
+packages = ["src/envguard"]
+
+[tool.envguard]
+# future: configuration via pyproject, e.g. fail_on = ["missing","typos"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["envguard"]
+branch = true
