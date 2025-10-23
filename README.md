@@ -1,15 +1,82 @@
-This project cross-check environment variables used in your Python code against declarations in `.env` and `docker-compose.yml`. And gives the report showing the list of unused environment variable. It is a great package at least i was waiting for a long time.
+`envguard` cross-checks the environment variables used in your Python code against those declared in your `.env` and `docker-compose.yml` files.
+It reports **unused**, **missing**, and **mismatched** variables — helping you keep your environment configuration clean and consistent.
 
-## Install
+For example, if you’ve ever had a project with 20 variables in `.env` but only 10 actually used, `envguard` instantly shows you which ones can be safely removed or fixed.
 
-````bash
-pipx install envguard
-# or
+---
+
+## Installation
+
+```bash
 pip install envguard
-# docker-compose extras:
-pip install "envguard[compose]"
+# or
+pipx install envguard
 
-## Project
+# with docker-compose support
+pip install "envguard[compose]"
+```
+
+---
+
+## Usage
+
+From your project root (where `.env` lives):
+
+```bash
+envguard .
+```
+
+You’ll get a report listing missing, unused, or suspicious environment variables.
+
+Example output:
+
+```
+== envguard report ==
+unused (2): DATABASE_URL, NOTUSEDAPI_KEY
+
+sources:
+  API_KEY: .env
+  DATABASE_URL: .env
+  DEBUG: .env
+  NOTUSEDAPI_KEY: .env
+```
+
+---
+
+## Configuration (optional)
+
+You can configure defaults globally for your project via a `[tool.envguard]` section in your `pyproject.toml`.
+
+```toml
+[tool.envguard]
+exclude = [".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]
+fail_on = ["missing"]
+dotenv = ".env"
+include = "*.py"
+```
+
+### Options
+
+| Key       | Type                      | Default                                                                            | Description                                                                                                          |
+| --------- | ------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `exclude` | list of strings           | `[".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]` | Directories or file patterns to ignore while scanning your code.                                                     |
+| `include` | string or list of strings | `"*.py"`                                                                           | Glob pattern(s) of files to include when scanning for environment variable usage.                                    |
+| `dotenv`  | string                    | `".env"`                                                                           | Path to your `.env` file used for validation.                                                                        |
+| `fail_on` | list of strings           | `["missing"]`                                                                      | Determines which findings trigger a non-zero exit code. Options: `"missing"`, `"typos"`, `"bad_values"`, `"unused"`. |
+
+---
+
+## Behavior
+
+- Ignores common directories like `.venv`, `dist/`, `build/`, and `.git/` by default.
+- Command-line arguments always override `pyproject.toml`.
+- Works seamlessly across macOS, Linux, and Windows.
+- Fully supports Python 3.8 → 3.12+.
+
+---
+
+## Project structure
+
 ```
 envguard/
 ├─ src/
@@ -25,36 +92,14 @@ envguard/
 ├─ pyproject.toml
 ├─ LICENSE
 ├─ README.md
-├─ .gitignore
 └─ .github/
    └─ workflows/
-      └─ test.yml
+      ├─ test.yml
+      └─ workflow.yml
 ```
 
-## Configuration
+---
 
-`envguard` can be configured globally for your project using a `[tool.envguard]` section in your `pyproject.toml`.
+## License
 
-### Example, Optional project-wide configuration
-```toml
-[tool.envguard]
-exclude = [".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]
-fail_on = ["missing"]
-dotenv = ".env"
-include = "*.py"
-````
-
-### Options
-
-| Key       | Type                      | Default                                                                            | Description                                                                                                                                                                                       |
-| --------- | ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `exclude` | list of strings           | `[".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]` | Directories or file patterns to ignore while scanning your code.                                                                                                                                  |
-| `include` | string or list of strings | `"*.py"`                                                                           | Glob pattern(s) of files to include when scanning for environment variable usage.                                                                                                                 |
-| `dotenv`  | string                    | `".env"`                                                                           | Path to your `.env` file used for validation.                                                                                                                                                     |
-| `fail_on` | list of strings           | `["missing"]`                                                                      | Defines which issues should cause a non-zero exit code. Possible values: `"missing"` (variable used in code but not declared), `typos`,`bad_values`, `"unused"` (variable declared but not used). |
-
-### Behavior
-
-- By default, `envguard` ignores common virtual environments, build directories, and version control folders.
-- You can override any of these defaults in your `pyproject.toml` to fit your project structure.
-- Command-line arguments override `pyproject.toml` only when explicitly provided.
+**MIT License** – feel free to use, modify, and contribute.
