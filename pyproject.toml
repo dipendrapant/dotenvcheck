@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dotenvcheck"
-version = "0.1.8"
+version = "0.1.9"
 description = "Cross-check environment variables used in Python code against .env and docker-compose."
 readme = "README.md"
 license = "MIT"
