@@ -1,19 +1,19 @@
-`envguard` cross-checks the environment variables used in your Python code against those declared in your `.env` and `docker-compose.yml` files.
+`dotenvchecker` cross-checks the environment variables used in your Python code against those declared in your `.env` and `docker-compose.yml` files.
 It reports **unused**, **missing**, and **mismatched** variables — helping you keep your environment configuration clean and consistent.
 
-For example, if you’ve ever had a project with 20 variables in `.env` but only 10 actually used, `envguard` instantly shows you which ones can be safely removed or fixed.
+For example, if you’ve ever had a project with 20 variables in `.env` but only 10 actually used, `dotenvchecker` instantly shows you which ones can be safely removed or fixed.
 
 ---
 
 ## Installation
 
 ```bash
-pip install envguard
+pip install dotenvchecker
 # or
-pipx install envguard
+pipx install dotenvchecker
 
 # with docker-compose support
-pip install "envguard[compose]"
+pip install "dotenvchecker[compose]"
 ```
 
 ---
@@ -23,7 +23,7 @@ pip install "envguard[compose]"
 From your project root (where `.env` lives):
 
 ```bash
-envguard .
+dotenvchecker .
 ```
 
 You’ll get a report listing missing, unused, or suspicious environment variables.
@@ -31,7 +31,7 @@ You’ll get a report listing missing, unused, or suspicious environment variabl
 Example output:
 
 ```
-== envguard report ==
+== dotenvchecker report ==
 unused (2): DATABASE_URL, NOTUSEDAPI_KEY
 
 sources:
@@ -45,10 +45,10 @@ sources:
 
 ## Configuration (optional)
 
-You can configure defaults globally for your project via a `[tool.envguard]` section in your `pyproject.toml`.
+You can configure defaults globally for your project via a `[tool.dotenvchecker]` section in your `pyproject.toml`.
 
 ```toml
-[tool.envguard]
+[tool.dotenvchecker]
 exclude = [".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]
 fail_on = ["missing"]
 dotenv = ".env"
@@ -78,7 +78,7 @@ include = "*.py"
 ## Project structure
 
 ```
-envguard/
+dotenvchecker/
 ├─ src/
 │  └─ envguard/
 │     ├─ __init__.py
