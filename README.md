@@ -1,19 +1,19 @@
-`dotenvchecker` cross-checks the environment variables used in your Python code against those declared in your `.env` and `docker-compose.yml` files.
+`dotenvcheck` cross-checks the environment variables used in your Python code against those declared in your `.env` and `docker-compose.yml` files.
 It reports **unused**, **missing**, and **mismatched** variables — helping you keep your environment configuration clean and consistent.
 
-For example, if you’ve ever had a project with 20 variables in `.env` but only 10 actually used, `dotenvchecker` instantly shows you which ones can be safely removed or fixed.
+For example, if you’ve ever had a project with 20 variables in `.env` but only 10 actually used, `dotenvcheck` instantly shows you which ones can be safely removed or fixed.
 
 ---
 
 ## Installation
 
 ```bash
-pip install dotenvchecker
+pip install dotenvcheck
 # or
-pipx install dotenvchecker
+pipx install dotenvcheck
 
 # with docker-compose support
-pip install "dotenvchecker[compose]"
+pip install "dotenvcheck[compose]"
 ```
 
 ---
@@ -23,7 +23,7 @@ pip install "dotenvchecker[compose]"
 From your project root (where `.env` lives):
 
 ```bash
-dotenvchecker .
+dotenvcheck .
 ```
 
 You’ll get a report listing missing, unused, or suspicious environment variables.
@@ -31,7 +31,7 @@ You’ll get a report listing missing, unused, or suspicious environment variabl
 Example output:
 
 ```
-== dotenvchecker report ==
+== dotenvcheck report ==
 unused (2): DATABASE_URL, NOTUSEDAPI_KEY
 
 sources:
@@ -45,10 +45,10 @@ sources:
 
 ## Configuration (optional)
 
-You can configure defaults globally for your project via a `[tool.dotenvchecker]` section in your `pyproject.toml`.
+You can configure defaults globally for your project via a `[tool.dotenvcheck]` section in your `pyproject.toml`.
 
 ```toml
-[tool.dotenvchecker]
+[tool.dotenvcheck]
 exclude = [".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"]
 fail_on = ["missing"]
 dotenv = ".env"
@@ -78,7 +78,7 @@ include = "*.py"
 ## Project structure
 
 ```
-dotenvchecker/
+dotenvcheck/
 ├─ src/
 │  └─ envguard/
 │     ├─ __init__.py

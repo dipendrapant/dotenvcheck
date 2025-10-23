@@ -3,7 +3,7 @@ requires = ["hatchling>=1.20.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dotenvchecker"
+name = "dotenvcheck"
 version = "0.1.8"
 description = "Cross-check environment variables used in Python code against .env and docker-compose."
 readme = "README.md"
@@ -27,7 +27,7 @@ dependencies = [
 compose = ["PyYAML>=6.0.1"]
 
 [project.scripts]
-dotenvchecker = "envguard.cli:main"
+dotenvcheck = "envguard.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/envguard"]
