@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "envguard"
-version = "0.1.4"
+version = "0.1.5"
 description = "Cross-check environment variables used in Python code against .env and docker-compose."
 readme = "README.md"
 license = "MIT"
