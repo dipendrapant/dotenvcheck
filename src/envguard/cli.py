@@ -2,10 +2,34 @@ import argparse
 import json
 import pathlib
 import sys
-from .scanner import scan_project
+
 from .report import to_console, to_json
+from .scanner import scan_project
 
+# NEW: tomllib (3.11+) with fallback to tomli (<3.11)
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:
+    try:
+        import tomli as tomllib  # Python 3.8–3.10
+    except ModuleNotFoundError:
+        tomllib = None
 
+def _load_config(root: pathlib.Path) -> dict:
+    """Load [tool.envguard] from pyproject.toml if present."""
+    if tomllib is None:
+        return {}
+    pp = root / "pyproject.toml"
+    if not pp.exists():
+        return {}
+    try:
+        data = tomllib.loads(pp.read_text(encoding="utf-8"))
+        tool = data.get("tool", {})
+        eg = tool.get("envguard", {})
+        return eg if isinstance(eg, dict) else {}
+    except Exception:
+        return {}
+    
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="envguard",
@@ -32,8 +56,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--exclude",
         action="append",
-        default=[],
-        help="Relative path/glob to exclude (can be used multiple times).",
+        default=[".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"],
+        help=("Relative path/glob to exclude (can be used multiple times). "
+              "Default: .venv, venv, env, .git, __pycache__, dist, build, node_modules"),
     )
     p.add_argument(
         "--json",
@@ -71,9 +96,19 @@ def main(argv=None):
         return 0
 
     root = pathlib.Path(args.path).resolve()
+    cfg = _load_config(root)
+    parser_default_excludes = {".venv", "venv", "env", ".git", "__pycache__", "dist", "build", "node_modules"}
+    if set(args.exclude) == parser_default_excludes and isinstance(cfg.get("exclude"), list):
+        args.exclude = list(cfg["exclude"])
+    if (not args.strict) and args.fail_on == "missing,typos" and isinstance(cfg.get("fail_on"), list):
+        args.fail_on = ",".join(cfg["fail_on"])
+    if args.dotenv is None and isinstance(cfg.get("dotenv"), str):
+        args.dotenv = cfg["dotenv"]
+    if args.include == "*.py" and isinstance(cfg.get("include"), str):
+        args.include = cfg["include"]
+
     dotenv_path = pathlib.Path(args.dotenv).resolve() if args.dotenv else (root / ".env")
     compose_path = pathlib.Path(args.compose).resolve() if args.compose else None
-
     fail_on = {"missing", "typos"} if not args.strict else {"missing", "typos", "unused", "bad_values"}
     if not args.strict and args.fail_on:
         fail_on = set([s.strip() for s in args.fail_on.split(",") if s.strip()])

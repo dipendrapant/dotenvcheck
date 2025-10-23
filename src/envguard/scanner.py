@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 import ast
 import pathlib
 import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
-from .dotenv import load_dotenv_vars
 from .compose import load_compose_env_names
+from .dotenv import load_dotenv_vars
 
 
 class EnvUsageVisitor(ast.NodeVisitor):
@@ -80,31 +81,29 @@ class Findings:
     unused: List[str] = field(default_factory=list)
     typos: List[Tuple[str, str]] = field(default_factory=list)
     bad_values: List[str] = field(default_factory=list)
-    sources: Dict[str, List[str]] = field(default_factory=dict)  # where a var was found (dotenv/compose)
+    sources: Dict[str, List[str]] = field(default_factory=dict)  
 
 
 def iter_code_files(root: pathlib.Path, include_glob: str, exclude_globs: List[str]):
     excludes = [root / g for g in exclude_globs]
-    for p in root.rglob(include_glob):
-        # skip excluded
-        skip = False
+    noisy_segments = {"site-packages", "dist-packages"}
+    venv_like = {".venv", "venv", "env"}
+
+    def is_excluded_path(path: pathlib.Path) -> bool:
         for ex in excludes:
             try:
-                if p.is_relative_to(ex):
-                    skip = True
-                    break
-            except AttributeError:
-                # Python < 3.9 fallback
-                try:
-                    p.relative_to(ex)
-                    skip = True
-                    break
-                except Exception:
-                    pass
-        if skip:
-            continue
-        if p.is_file():
-            yield p
+                path.relative_to(ex); return True
+            except Exception:
+                pass
+        if any(seg in noisy_segments for seg in path.parts): return True
+        if any(seg in venv_like for seg in path.parts): return True
+        return False
+
+    venv_roots = {p.parent.resolve() for p in root.rglob("pyvenv.cfg")}
+    for p in root.rglob(include_glob):
+        if any(vr in p.parents for vr in venv_roots): continue
+        if is_excluded_path(p): continue
+        if p.is_file(): yield p
 
 
 def collect_used_env_names(root: pathlib.Path, include_glob: str, exclude_globs: List[str]) -> Set[str]:
@@ -118,15 +117,16 @@ def collect_used_env_names(root: pathlib.Path, include_glob: str, exclude_globs:
             tree = ast.parse(text, filename=str(f))
         except SyntaxError:
             continue
-        v = EnvUsageVisitor()
-        v.visit(tree)
-        used |= v.used
+        try:
+            v = EnvUsageVisitor()
+            v.visit(tree)
+            used |= v.used
+        except Exception: # any unexpected AST quirk: skip this file instead of crashing
+            continue
     return used
 
 
 def levenshtein_close(a: str, b: str) -> bool:
-    # lightweight closeness check without extra deps
-    # treat case-insensitive, single edit-distance-ish heuristic
     a2, b2 = a.lower(), b.lower()
     if a2 == b2:
         return False
